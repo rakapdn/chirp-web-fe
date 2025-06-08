@@ -1,0 +1,35 @@
+// src/pages/register/register.css
+.register {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f2f5;
+}
+.registerBox {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.registerBox input {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+.registerBox button {
+  padding: 10px;
+  background-color: #398AB9;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.registerBox a {
+  color: #398AB9;
+  text-decoration: none;
+}
