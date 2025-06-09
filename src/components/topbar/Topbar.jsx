@@ -44,6 +44,12 @@ export default function Topbar() {
             </button>
           </div>
           <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigate("/login")}
+              className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white px-4 py-2 rounded-full font-semibold shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-purple-500/30 transform hover:scale-105 transition-all duration-300"
+            >
+              Login
+            </button>
             <div className="relative">
               <button className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center justify-center font-bold shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-110">
                 U
