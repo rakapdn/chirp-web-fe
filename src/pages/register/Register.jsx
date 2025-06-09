@@ -17,14 +17,13 @@ export default function Register() {
     setErrorMessage("");
     try {
       const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
-      const API_BASE = process.env.REACT_APP_API_BASE || "/api";
-      await axios.post(`${API_URL}${API_BASE}/auth/register`, {
+      await axios.post(`${API_URL}/api/auth/register`, {
         email,
         username,
         fullName,
         password,
       });
-      navigate("/login");
+      navigate("/login"); // Arahkan ke halaman login setelah registrasi sukses
     } catch (error) {
       setErrorMessage(error.response?.data?.error || "Registrasi gagal! Silakan coba lagi.");
     } finally {

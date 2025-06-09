@@ -15,10 +15,10 @@ export default function Login() {
     setErrorMessage("");
     try {
       const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
-      const API_BASE = process.env.REACT_APP_API_BASE || "/api";
-      const res = await axios.post(`${API_URL}${API_BASE}/auth/login`, { email, password });
-      localStorage.setItem("token", res.data.token);
-      navigate("/");
+      const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
+      const { token, user } = res.data;
+      localStorage.setItem("token", token); // Simpan token untuk autentikasi
+      navigate("/"); // Arahkan ke halaman utama setelah login
     } catch (error) {
       setErrorMessage(error.response?.data?.error || "Login gagal! Periksa kredensial Anda.");
     } finally {
