@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import TokenStorage from "../../utils/TokenStorage"; // sesuaikan path-nya
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -9,22 +10,34 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrorMessage("");
-    try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
-      const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
-      const { token, user } = res.data;
-      localStorage.setItem("token", token); // Simpan token untuk autentikasi
-      navigate("/"); // Arahkan ke halaman utama setelah login
-    } catch (error) {
-      setErrorMessage(error.response?.data?.error || "Login gagal! Periksa kredensial Anda.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setErrorMessage("");
+  try {
+    const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
+    const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
+    const { token, user } = res.data;
+
+    console.log("DEBUG: token received ->", token);
+    console.log("DEBUG: userId received ->", user.id);
+
+    // Simpan token dan userId menggunakan TokenStorage
+    TokenStorage.setToken(token);
+    TokenStorage.setUserId(user.id);
+
+    // Verifikasi bahwa data sudah tersimpan dengan mengambilnya kembali
+    console.log("DEBUG: saved token ->", TokenStorage.getToken());
+    console.log("DEBUG: saved userId ->", TokenStorage.getUserId());
+
+    navigate("/"); // Arahkan ke halaman utama setelah login
+  } catch (error) {
+    setErrorMessage(error.response?.data?.error || "Login gagal! Periksa kredensial Anda.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="login min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
