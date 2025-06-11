@@ -1,11 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-<<<<<<< HEAD
 import { useNavigate, Link } from "react-router-dom";
-=======
-import { useNavigate } from "react-router-dom";
-import TokenStorage from "../../utils/TokenStorage"; // sesuaikan path-nya
->>>>>>> 676164c3e260cef07076e7fa5a473fbe4dbec415
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,7 +9,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-<<<<<<< HEAD
   const validateForm = () => {
     if (!email || !password) {
       return "Email dan password harus diisi.";
@@ -53,36 +47,6 @@ export default function Login() {
       setIsLoading(false);
     }
   };
-=======
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setErrorMessage("");
-  try {
-    const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
-    const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
-    const { token, user } = res.data;
-
-    console.log("DEBUG: token received ->", token);
-    console.log("DEBUG: userId received ->", user.id);
-
-    // Simpan token dan userId menggunakan TokenStorage
-    TokenStorage.setToken(token);
-    TokenStorage.setUserId(user.id);
-
-    // Verifikasi bahwa data sudah tersimpan dengan mengambilnya kembali
-    console.log("DEBUG: saved token ->", TokenStorage.getToken());
-    console.log("DEBUG: saved userId ->", TokenStorage.getUserId());
-
-    navigate("/"); // Arahkan ke halaman utama setelah login
-  } catch (error) {
-    setErrorMessage(error.response?.data?.error || "Login gagal! Periksa kredensial Anda.");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
->>>>>>> 676164c3e260cef07076e7fa5a473fbe4dbec415
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
