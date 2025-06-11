@@ -8,15 +8,15 @@ export default function Sidebar() {
           <h3 className="font-bold text-gray-800 text-lg">Menu</h3>
           <ul className="space-y-2">
             {[
-              { icon: <RssFeed />, text: "Feed" },
-              { icon: <ChatBubbleOutline />, text: "Chats" },
-              { icon: <PlayCircleFilled />, text: "Videos" },
-              { icon: <GroupAddOutlined />, text: "Groups" },
-              { icon: <Bookmark />, text: "Bookmarks" },
-              { icon: <HelpOutline />, text: "Questions" },
-              { icon: <WorkOutline />, text: "Jobs" },
-              { icon: <Event />, text: "Events" },
-              { icon: <School />, text: "Courses" },
+              { icon: <RssFeed />, text: "-" },
+              { icon: <ChatBubbleOutline />, text: "-" },
+              { icon: <PlayCircleFilled />, text: "-" },
+              { icon: <GroupAddOutlined />, text: "-" },
+              { icon: <Bookmark />, text: "-" },
+              { icon: <HelpOutline />, text: "-" },
+              { icon: <WorkOutline />, text: "-" },
+              { icon: <Event />, text: "-" },
+              { icon: <School />, text: "-" },
             ].map((item, index) => (
               <li key={index} className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer transition-colors">
                 <span className="text-lg">{item.icon}</span>
