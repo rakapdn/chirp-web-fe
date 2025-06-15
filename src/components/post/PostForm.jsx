@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import TokenStorage from "../../utils/TokenStorage";
 
-export default function PostForm({ setPosts }) {
+export default function PostForm({ onPostCreated }) {
   const [content, setContent] = useState("");
   const [file, setFile] = useState(null);
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
@@ -20,7 +20,7 @@ export default function PostForm({ setPosts }) {
 
       const body = {
         content: content.trim(),
-        image: "", // Kirim string kosong karena belum ada upload image handling
+        image: "", // No image upload handling yet
       };
 
       const config = {
@@ -30,18 +30,14 @@ export default function PostForm({ setPosts }) {
         },
       };
 
-      const response = await axios.post(
-        `${API_URL}${API_BASE}/posts`,
-        body,
-        config
-      );
+      await axios.post(`${API_URL}${API_BASE}/posts`, body, config);
 
       setContent("");
       setFile(null);
 
-      if (setPosts) {
-        setPosts((prevPosts) => [response.data, ...prevPosts]);
-      }
+      // Trigger parent to reload posts to get full accurate data
+      if (onPostCreated) onPostCreated();
+
     } catch (error) {
       console.error("Gagal mengirim postingan:", error.response || error);
       alert("Gagal mengirim postingan. Coba lagi nanti.");
