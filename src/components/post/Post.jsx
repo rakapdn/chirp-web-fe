@@ -34,25 +34,7 @@ export default function Post({ post, setPosts }) {
     }
   };
 
-  const deleteHandler = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Anda harus login untuk menghapus postingan!");
-      return;
-    }
 
-    if (window.confirm("Yakin ingin menghapus postingan ini?")) {
-      try {
-        await axios.delete(`${API_URL}${API_BASE}/posts/${post.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setPosts((prevPosts) => prevPosts.filter((p) => p.id !== post.id));
-      } catch (error) {
-        console.error("Delete failed:", error);
-        alert(error.response?.data?.error || "Gagal menghapus postingan!");
-      }
-    }
-  };
 
   const getImageUrl = (filePath) => {
     if (!filePath) return null;
@@ -108,12 +90,6 @@ export default function Post({ post, setPosts }) {
             >
               <span className="text-lg">{isLiked ? "❤️" : "🤍"}</span>
               <span className="font-semibold">{like}</span>
-            </button>
-            <button
-              onClick={deleteHandler}
-              className="hover:text-red-500 transition-all duration-300 transform hover:scale-110 p-2 rounded-full hover:bg-red-50"
-            >
-              <span className="text-lg">🗑️</span>
             </button>
           </div>
         </div>
