@@ -132,13 +132,13 @@ export default function Profile() {
             </div>
           </div>
           {/* Postingan User */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Postingan</h3>
-            {posts.length === 0 && <p>User belum membuat postingan apapun.</p>}
-            {posts.map((post) => (
-              <Post key={post.id} post={post} setPosts={setPosts} />
-            ))}
-          </div>
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Postingan</h3>
+          {posts.length === 0 && <p>User belum membuat postingan apapun.</p>}
+          {posts.map((post) => (
+            <Post key={post.id} post={post} setPosts={setPosts} />
+          ))}
+        </div>
         </div>
         <Rightbar />
       </div>
