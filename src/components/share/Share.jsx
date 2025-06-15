@@ -1,8 +1,7 @@
-import { PermMedia, Label, Room, EmojiEmotions } from "@material-ui/icons";
 import { useState } from "react";
 import axios from "axios";
 
-export default function Share() {
+export default function Share({ setPosts }) {
   const [content, setContent] = useState("");
   const [file, setFile] = useState(null);
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
@@ -10,19 +9,48 @@ export default function Share() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Anda harus login untuk membuat postingan!");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("content", content);
-    if (file) formData.append("file", file);
+    if (file) {
+      // Asumsi file diunggah ke /api/images/upload dan mengembalikan URL
+      try {
+        const uploadRes = await axios.post(
+          `${API_URL}${API_BASE}/images/upload`,
+          { file, user_id: 1, post_id: 0 }, // Ganti user_id dan post_id dengan nilai dinamis
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        formData.append("image", uploadRes.data.image.file_path);
+      } catch (error) {
+        console.error("Upload image failed:", error);
+        alert("Gagal mengunggah gambar!");
+        return;
+      }
+    }
 
     try {
-      await axios.post(`${API_URL}${API_BASE}/posts`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const res = await axios.post(`${API_URL}${API_BASE}/posts`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       });
+      setPosts((prevPosts) => [res.data, ...prevPosts]); // Tambahkan post baru ke daftar
       setContent("");
       setFile(null);
-      window.location.reload();
     } catch (error) {
       console.error("Share failed:", error);
+      alert(error.response?.data?.error || "Gagal membuat postingan!");
     }
   };
 
@@ -43,7 +71,11 @@ export default function Share() {
           <div className="flex justify-between items-center mt-4">
             <div className="flex space-x-3">
               <label className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex items-center justify-center hover:shadow-lg hover:shadow-blue-500/25 transform hover:scale-110 transition-all duration-300 cursor-pointer">
-                <input type="file" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
                 📷
               </label>
               <button className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white flex items-center justify-center hover:shadow-lg hover:shadow-green-500/25 transform hover:scale-110 transition-all duration-300">
