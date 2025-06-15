@@ -1,9 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 
-export default function Post({ post }) {
+export default function Post({ post, setPosts }) {
   const [like, setLike] = useState(post.like_count || 0);
   const [isLiked, setIsLiked] = useState(post.liked_by_me || false);
+
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
   const API_BASE = process.env.REACT_APP_API_BASE || "/api";
 
@@ -33,10 +34,28 @@ export default function Post({ post }) {
     }
   };
 
-  // Fungsi untuk menangani URL gambar (mendukung signed URL dari Supabase)
+  const deleteHandler = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Anda harus login untuk menghapus postingan!");
+      return;
+    }
+
+    if (window.confirm("Yakin ingin menghapus postingan ini?")) {
+      try {
+        await axios.delete(`${API_URL}${API_BASE}/posts/${post.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setPosts((prevPosts) => prevPosts.filter((p) => p.id !== post.id));
+      } catch (error) {
+        console.error("Delete failed:", error);
+        alert(error.response?.data?.error || "Gagal menghapus postingan!");
+      }
+    }
+  };
+
   const getImageUrl = (filePath) => {
     if (!filePath) return null;
-    // Asumsi backend mengembalikan file_path, gunakan endpoint /api/images/:filename untuk signed URL
     return `${API_URL}${API_BASE}/images/${encodeURIComponent(filePath)}`;
   };
 
@@ -44,7 +63,7 @@ export default function Post({ post }) {
     <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-gray-500/5 border border-white/20 p-6 hover:shadow-2xl hover:shadow-blue-500/10 transform hover:-translate-y-1 transition-all duration-500 group">
       <div className="flex space-x-4">
         <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg group-hover:shadow-xl transition-all duration-300">
-          {post.author_username?.charAt(0)?.toUpperCase() || "U"}
+          {post.author_username?.charAt(0) || "U"}
         </div>
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-3">
@@ -71,7 +90,7 @@ export default function Post({ post }) {
               className="w-full max-h-96 object-cover rounded-xl"
               src={getImageUrl(post.image)}
               alt="Post image"
-              onError={(e) => (e.target.style.display = "none")} // Sembunyikan jika gambar gagal dimuat
+              onError={(e) => (e.target.style.display = "none")}
             />
           )}
           <div className="flex items-center space-x-8 text-gray-500 mt-4">
@@ -90,8 +109,11 @@ export default function Post({ post }) {
               <span className="text-lg">{isLiked ? "❤️" : "🤍"}</span>
               <span className="font-semibold">{like}</span>
             </button>
-            <button className="hover:text-purple-500 transition-all duration-300 transform hover:scale-110 p-2 rounded-full hover:bg-purple-50">
-              <span className="text-lg">📤</span>
+            <button
+              onClick={deleteHandler}
+              className="hover:text-red-500 transition-all duration-300 transform hover:scale-110 p-2 rounded-full hover:bg-red-50"
+            >
+              <span className="text-lg">🗑️</span>
             </button>
           </div>
         </div>
