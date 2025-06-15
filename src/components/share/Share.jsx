@@ -58,20 +58,7 @@ export default function Search() {
 
   return (
     <>
-      <Topbar />
-      <div className="flex max-w-6xl mx-auto">
-        <Sidebar />
-        <div className="flex-1 p-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">Cari</h1>
-          <div className="mb-4">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari pengguna atau postingan..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+        <div>
           {error && <div className="text-red-500 text-center mb-4">{error}</div>}
           {results.length === 0 && !error && query.trim() ? (
             <div className="text-gray-500 text-center">Tidak ada hasil untuk "{query}".</div>
@@ -95,8 +82,6 @@ export default function Search() {
             </div>
           )}
         </div>
-        <Rightbar />
-      </div>
     </>
   );
 }
