@@ -1,9 +1,8 @@
-// PostForm.jsx
 import { useState } from "react";
 import axios from "axios";
 import TokenStorage from "../../utils/TokenStorage";
 
-export default function PostForm() {
+export default function PostForm({ setPosts }) {
   const [content, setContent] = useState("");
   const [file, setFile] = useState(null);
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
@@ -12,28 +11,37 @@ export default function PostForm() {
   const handleSubmit = async () => {
     if (!content.trim()) return;
 
-    const formData = new FormData();
-    formData.append("content", content);
-    if (file) {
-      formData.append("file", file);
-    }
-
     try {
       const token = TokenStorage.getToken();
       if (!token) {
         alert("Anda harus login terlebih dahulu.");
         return;
       }
+
+      const body = {
+        content: content.trim(),
+        image: "", // Kirim string kosong karena belum ada upload image handling
+      };
+
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       };
-      await axios.post(`${API_URL}${API_BASE}/posts`, formData, config);
-      alert("Postingan berhasil dibuat!");
+
+      const response = await axios.post(
+        `${API_URL}${API_BASE}/posts`,
+        body,
+        config
+      );
+
       setContent("");
       setFile(null);
+
+      if (setPosts) {
+        setPosts((prevPosts) => [response.data, ...prevPosts]);
+      }
     } catch (error) {
       console.error("Gagal mengirim postingan:", error.response || error);
       alert("Gagal mengirim postingan. Coba lagi nanti.");
@@ -52,7 +60,7 @@ export default function PostForm() {
             onChange={(e) => setContent(e.target.value)}
             placeholder="Apa yang sedang Anda pikirkan? ✨"
             className="w-full resize-none border-none outline-none text-lg placeholder-gray-400 bg-transparent font-medium"
-            rows="3"
+            rows={3}
           />
           <div className="flex justify-between items-center mt-4">
             <div className="flex space-x-3">
