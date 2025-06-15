@@ -112,7 +112,6 @@ export default function Profile() {
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-800">{profileData?.user?.username || "Unknown"}</h1>
                 <p className="text-gray-600">{profileData?.user?.fullName || "Nama Lengkap"}</p>
-                {/* <p className="text-gray-500 text-sm">{profileData?.user?.email || "email@example.com"}</p> */}
                 <p className="mt-2 text-gray-500">{profileData?.user?.bio || "Tidak ada bio"}</p>
                 <div className="flex space-x-4 mt-4 text-gray-500">
                   <span>

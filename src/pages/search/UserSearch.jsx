@@ -1,88 +1,172 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 export default function UserSearch() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
+  const [user, setUser] = useState(null);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
   const API_BASE = process.env.REACT_APP_API_BASE || "/api";
 
-  useEffect(() => {
-    const fetchSearchResults = async () => {
-      if (!query.trim()) {
-        setResults([]);
-        return;
-      }
-      try {
-        const token = localStorage.getItem("token");
-        const config = token
-          ? { headers: { Authorization: `Bearer ${token}` } }
-          : {};
-        const res = await axios.get(`${API_URL}${API_BASE}/search?q=${encodeURIComponent(query)}`, config);
-        // Filter hanya pengguna (type: "user") dan pastikan struktur data sesuai
-        const usersData = Array.isArray(res.data)
-          ? res.data
-              .filter((item) => item.type === "user")
-              .map((item) => ({
-                id: item.id,
-                type: item.type,
-                username: item.username,
-                fullName: item.fullName || "Tanpa nama lengkap",
-              }))
-          : [];
-        setResults(usersData);
-        setError("");
-      } catch (error) {
-        console.error("Error fetching search results:", error.response || error);
+  // Cek status follow setelah user ditemukan
+  const checkFollowing = async (userId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {};
+      // Endpoint cek status follow (misal /users/:id/is-following)
+      const res = await axios.get(
+        `${API_URL}${API_BASE}/users/${userId}/is-following`,
+        config
+      );
+      setIsFollowing(res.data.isFollowing);
+    } catch {
+      setIsFollowing(false);
+    }
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setError("");
+    setUser(null);
+
+    if (!query.trim()) {
+      setError("Masukkan username untuk mencari.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {};
+      const res = await axios.get(
+        `${API_URL}${API_BASE}/users/search?username=${encodeURIComponent(query)}`,
+        config
+      );
+      setUser(res.data.user);
+      setError("");
+      // Cek status follow
+      await checkFollowing(res.data.user.id);
+    } catch (err) {
+      setUser(null);
+      setIsFollowing(false);
+      if (err.response?.status === 404) {
+        setError("Pengguna tidak ditemukan.");
+      } else {
         setError(
-          error.response?.data?.error || "Gagal memuat hasil pencarian. Coba lagi nanti."
+          err.response?.data?.error ||
+            "Gagal mencari pengguna. Coba lagi nanti."
         );
-        setResults([]); // Tidak menggunakan data dummy
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const debounce = setTimeout(() => fetchSearchResults(), 500);
-    return () => clearTimeout(debounce);
-  }, [query, API_URL, API_BASE]);
+  const handleFollow = async () => {
+    if (!user) return;
+    setFollowLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {};
+      await axios.post(
+        `${API_URL}${API_BASE}/users/${user.id}/follow`,
+        {},
+        config
+      );
+      setIsFollowing(true);
+    } catch (err) {
+      setError(
+        err.response?.data?.error ||
+          "Gagal follow user. Coba lagi nanti."
+      );
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
-  const handleProfileClick = (username) => {
-    navigate(`/profile?username=${username}`);
+  const handleUnfollow = async () => {
+    if (!user) return;
+    setFollowLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {};
+      await axios.post(
+        `${API_URL}${API_BASE}/users/${user.id}/unfollow`,
+        {},
+        config
+      );
+      setIsFollowing(false);
+    } catch (err) {
+      setError(
+        err.response?.data?.error ||
+          "Gagal unfollow user. Coba lagi nanti."
+      );
+    } finally {
+      setFollowLoading(false);
+    }
   };
 
   return (
     <div className="user-search-component">
-      <div className="mb-4">
+      <form onSubmit={handleSearch} className="mb-4 flex gap-2">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Cari pengguna atau postingan..."
+          placeholder="Cari username pengguna..."
           className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
         />
-      </div>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+          disabled={loading}
+        >
+          {loading ? "Mencari..." : "Cari"}
+        </button>
+      </form>
       {error && <div className="text-red-500 text-center mb-4">{error}</div>}
-      {results.length === 0 && !error && query.trim() ? (
-        <div className="text-gray-500 text-center">Tidak ada hasil untuk "{query}".</div>
-      ) : (
-        <div className="space-y-4">
-          {results.map((result) => (
-            <div
-              key={result.id}
-              className="bg-white/90 backdrop-blur-xl p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 flex items-center space-x-4 cursor-pointer"
-              onClick={() => handleProfileClick(result.username)}
-            >
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold">
-                {result.username.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="text-gray-800 font-medium">{result.username}</p>
-                <p className="text-gray-500 text-sm">{result.fullName}</p>
-              </div>
-            </div>
-          ))}
+      {user && (
+        <div className="bg-white/90 backdrop-blur-xl p-4 rounded-xl shadow-md flex items-center space-x-4 max-w-md mx-auto">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-2xl overflow-hidden">
+            {user.image ? (
+              <img
+                src={user.image}
+                alt={user.username}
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              user.username.charAt(0).toUpperCase()
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="text-gray-800 font-medium text-lg">{user.username}</p>
+            <p className="text-gray-500 text-sm">{user.fullName || "Tanpa nama lengkap"}</p>
+          </div>
+          {/* Tombol Follow/Unfollow di sebelah kanan */}
+          <button
+            className={`px-3 py-1 rounded-lg font-medium ${
+              isFollowing
+                ? "bg-gray-200 text-gray-700 border border-gray-400"
+                : "bg-blue-600 text-white"
+            }`}
+            style={{ minWidth: 90 }}
+            onClick={isFollowing ? handleUnfollow : handleFollow}
+            disabled={followLoading}
+          >
+            {followLoading ? "Memproses..." : isFollowing ? "Unfollow" : "Follow"}
+          </button>
         </div>
       )}
     </div>
