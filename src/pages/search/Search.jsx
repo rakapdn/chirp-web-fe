@@ -7,7 +7,7 @@ export default function Search() {
   return (
     <>
       <Topbar />
-      <div className="flex max-w-6xl mx-auto">
+      <div className="flex max-w-6xl mx-auto bg-white min-h-screen">
         <Sidebar />
         <div className="flex-1 p-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-6">Cari</h1>

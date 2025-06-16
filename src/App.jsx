@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Home from "./pages/home/Home";
 import Profile from "./pages/profile/Profile";
+import OtherUserProfile from "./pages/profile/OtherUserProfile"; // Import baru
 import Login from "./pages/login/Login";
 import Register from "./pages/register/Register";
 import Notifications from "./pages/notifications/Notifications";
@@ -12,11 +13,11 @@ const ProtectedRoute = () => {
 };
 
 // Placeholder untuk halaman profil pengguna lain
-const OtherUserProfile = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <p className="text-gray-600">Fitur profil pengguna lain belum diimplementasikan.</p>
-  </div>
-);
+// const OtherUserProfile = () => (
+//   <div className="min-h-screen flex items-center justify-center">
+//     <p className="text-gray-600">Fitur profil pengguna lain belum diimplementasikan.</p>
+//   </div>
+// );
 
 function App() {
   return (
