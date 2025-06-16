@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
-import axios from "axios"; 
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import TokenStorage from "../../utils/TokenStorage"; // sesuaikan path import
-import Topbar from "../../components/topbar/Topbar";
-import Sidebar from "../../components/sidebar/Sidebar";
-import Rightbar from "../../components/rightbar/Rightbar";
 import PostCurrentUser from "../../components/post/PostCurrentUser";
 
 // Fungsi untuk mendapatkan URL gambar dari nama/folder gambar post
 const getImageUrl = (imageName) => {
   // Implementasi jika ada logika khusus, misal base url + image path
-  return imageName ? `${process.env.REACT_APP_API_URL || "http://localhost:3000"}/uploads/${imageName}` : null;
+  return imageName
+    ? `${
+        process.env.REACT_APP_API_URL || "http://localhost:3000"
+      }/uploads/${imageName}`
+    : null;
 };
 
 export default function Profile() {
@@ -45,7 +46,10 @@ export default function Profile() {
           TokenStorage.clear();
           navigate("/login");
         } else {
-          setErrorMessage(error.response?.data?.error || "Gagal memuat profil. Coba lagi nanti.");
+          setErrorMessage(
+            error.response?.data?.error ||
+              "Gagal memuat profil. Coba lagi nanti."
+          );
         }
       } finally {
         setIsLoadingProfile(false);
@@ -67,9 +71,12 @@ export default function Profile() {
       }
 
       try {
-        const response = await axios.get(`${API_URL}/api/users/${userId}/posts`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          `${API_URL}/api/users/${userId}/posts`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setPosts(response.data); // asumsikan array postingan langsung diterima
       } catch (error) {
         setPostsError(error.response?.data?.error || "Gagal memuat postingan.");
@@ -98,49 +105,49 @@ export default function Profile() {
   }
 
   return (
-    <>
-      <Topbar />
-      <div className="flex max-w-6xl mx-auto">
-        <Sidebar />
-        <div className="flex-1 p-6">
-          {/* Header Profil */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-blue-500/10 border border-white/20 p-6 mb-6">
-            <div className="flex items-center space-x-6">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-3xl shadow-lg">
-                {profileData?.user?.username?.charAt(0)?.toUpperCase() || "U"}
-              </div>
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-800">{profileData?.user?.username || "Unknown"}</h1>
-                <p className="text-gray-600">{profileData?.user?.fullName || "Nama Lengkap"}</p>
-                <p className="mt-2 text-gray-500">{profileData?.user?.bio || "Tidak ada bio"}</p>
-                <div className="flex space-x-4 mt-4 text-gray-500">
-                  <span>
-                    <strong>{profileData?.followerCount ?? 0}</strong> Pengikut
-                  </span>
-                  <span>
-                    <strong>{profileData?.followingCount ?? 0}</strong> Mengikuti
-                  </span>
-                </div>
-              </div>
-              <button
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                onClick={() => alert("Fitur edit profil belum diimplementasikan")}
-              >
-                Edit Profil
-              </button>
+    // Gunakan satu div pembungkus sederhana, BUKAN <div className="flex-1 p-6">
+    <div>
+      {/* Header Profil */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-blue-500/10 border border-white/20 p-6 mb-6">
+        <div className="flex items-center space-x-6">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-3xl shadow-lg">
+            {profileData?.user?.username?.charAt(0)?.toUpperCase() || "U"}
+          </div>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-gray-800">
+              {profileData?.user?.username || "Unknown"}
+            </h1>
+            <p className="text-gray-600">
+              {profileData?.user?.fullName || "Nama Lengkap"}
+            </p>
+            <p className="mt-2 text-gray-500">
+              {profileData?.user?.bio || "Tidak ada bio"}
+            </p>
+            <div className="flex space-x-4 mt-4 text-gray-500">
+              <span>
+                <strong>{profileData?.followerCount ?? 0}</strong> Pengikut
+              </span>
+              <span>
+                <strong>{profileData?.followingCount ?? 0}</strong> Mengikuti
+              </span>
             </div>
           </div>
-          {/* Postingan User */}
-        <div>
-          <h3 className="text-xl font-semibold mb-4">Postingan</h3>
-          {posts.length === 0 && <p>User belum membuat postingan apapun.</p>}
-          {posts.map((post) => (
-            <PostCurrentUser key={post.id} post={post} setPosts={setPosts} />
-          ))}
+          <button
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            onClick={() => alert("Fitur edit profil belum diimplementasikan")}
+          >
+            Edit Profil
+          </button>
         </div>
-        </div>
-        <Rightbar />
       </div>
-    </>
+      {/* Postingan User */}
+      <div>
+        <h3 className="text-xl font-semibold mb-4">Postingan</h3>
+        {posts.length === 0 && <p>User belum membuat postingan apapun.</p>}
+        {posts.map((post) => (
+          <PostCurrentUser key={post.id} post={post} setPosts={setPosts} />
+        ))}
+      </div>
+    </div>
   );
 }
