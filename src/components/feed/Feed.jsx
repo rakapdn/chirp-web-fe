@@ -13,9 +13,11 @@ export default function Feed() {
   const fetchPosts = async () => {
     try {
       const token = TokenStorage.getToken();
-      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {};
       const res = await axios.get(`${API_URL}${API_BASE}/posts`, config);
-      const postsData = res.data.map(post => ({
+      const postsData = res.data.map((post) => ({
         ...post,
         like_count: Number(post.like_count),
         reply_count: Number(post.reply_count),
@@ -24,7 +26,10 @@ export default function Feed() {
       setError("");
     } catch (error) {
       console.error("Error fetching posts:", error);
-      setError(error.response?.data?.error || "Gagal memuat postingan. Coba lagi nanti.");
+      setError(
+        error.response?.data?.error ||
+          "Gagal memuat postingan. Coba lagi nanti."
+      );
     }
   };
 
@@ -33,8 +38,7 @@ export default function Feed() {
   }, [API_URL, API_BASE]);
 
   return (
-    <main className="flex-1 min-h-screen px-4 py-6 max-w-2xl mx-auto">
-      {/* Pass fetchPosts as onPostCreated callback */}
+    <div>
       <PostForm onPostCreated={fetchPosts} />
       {error && <div className="text-red-500 text-center mb-4">{error}</div>}
       {posts.length === 0 && !error ? (
@@ -42,7 +46,6 @@ export default function Feed() {
       ) : (
         <PostsList posts={posts} />
       )}
-    </main>
+    </div>
   );
 }
-
