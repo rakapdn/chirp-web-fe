@@ -5,7 +5,7 @@ import TokenStorage from "../../utils/TokenStorage"; // sesuaikan path import
 import Topbar from "../../components/topbar/Topbar";
 import Sidebar from "../../components/sidebar/Sidebar";
 import Rightbar from "../../components/rightbar/Rightbar";
-import Post from "../../components/post/PostCurrentUser";
+import PostCurrentUser from "../../components/post/PostCurrentUser";
 
 // Fungsi untuk mendapatkan URL gambar dari nama/folder gambar post
 const getImageUrl = (imageName) => {
@@ -135,7 +135,7 @@ export default function Profile() {
           <h3 className="text-xl font-semibold mb-4">Postingan</h3>
           {posts.length === 0 && <p>User belum membuat postingan apapun.</p>}
           {posts.map((post) => (
-            <Post key={post.id} post={post} setPosts={setPosts} />
+            <PostCurrentUser key={post.id} post={post} setPosts={setPosts} />
           ))}
         </div>
         </div>
