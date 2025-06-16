@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function UserSearch() {
   const [query, setQuery] = useState("");
@@ -8,22 +9,16 @@ export default function UserSearch() {
   const [loading, setLoading] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const navigate = useNavigate();
 
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
   const API_BASE = process.env.REACT_APP_API_BASE || "/api";
 
-  // Cek status follow setelah user ditemukan
   const checkFollowing = async (userId) => {
     try {
       const token = localStorage.getItem("token");
-      const config = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {};
-      // Endpoint cek status follow (misal /users/:id/is-following)
-      const res = await axios.get(
-        `${API_URL}${API_BASE}/users/${userId}/is-following`,
-        config
-      );
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      const res = await axios.get(`${API_URL}${API_BASE}/users/${userId}/is-following`, config);
       setIsFollowing(res.data.isFollowing);
     } catch {
       setIsFollowing(false);
@@ -43,27 +38,25 @@ export default function UserSearch() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const config = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {};
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
       const res = await axios.get(
         `${API_URL}${API_BASE}/users/search?username=${encodeURIComponent(query)}`,
         config
       );
-      setUser(res.data.user);
-      setError("");
-      // Cek status follow
-      await checkFollowing(res.data.user.id);
+      const foundUser = res.data.user;
+      if (foundUser) {
+        setUser(foundUser);
+        await checkFollowing(foundUser.id);
+      } else {
+        setError("Pengguna tidak ditemukan.");
+      }
     } catch (err) {
       setUser(null);
       setIsFollowing(false);
       if (err.response?.status === 404) {
         setError("Pengguna tidak ditemukan.");
       } else {
-        setError(
-          err.response?.data?.error ||
-            "Gagal mencari pengguna. Coba lagi nanti."
-        );
+        setError(err.response?.data?.error || "Gagal mencari pengguna. Coba lagi nanti.");
       }
     } finally {
       setLoading(false);
@@ -75,20 +68,11 @@ export default function UserSearch() {
     setFollowLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const config = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {};
-      await axios.post(
-        `${API_URL}${API_BASE}/users/${user.id}/follow`,
-        {},
-        config
-      );
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      await axios.post(`${API_URL}${API_BASE}/users/${user.id}/follow`, {}, config);
       setIsFollowing(true);
     } catch (err) {
-      setError(
-        err.response?.data?.error ||
-          "Gagal follow user. Coba lagi nanti."
-      );
+      setError(err.response?.data?.error || "Gagal follow user. Coba lagi nanti.");
     } finally {
       setFollowLoading(false);
     }
@@ -99,22 +83,23 @@ export default function UserSearch() {
     setFollowLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const config = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {};
-      await axios.post(
-        `${API_URL}${API_BASE}/users/${user.id}/unfollow`,
-        {},
-        config
-      );
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      await axios.post(`${API_URL}${API_BASE}/users/${user.id}/unfollow`, {}, config);
       setIsFollowing(false);
     } catch (err) {
-      setError(
-        err.response?.data?.error ||
-          "Gagal unfollow user. Coba lagi nanti."
-      );
+      setError(err.response?.data?.error || "Gagal unfollow user. Coba lagi nanti.");
     } finally {
       setFollowLoading(false);
+    }
+  };
+
+  const getImageUrl = (imagePath) => {
+    return imagePath ? `${API_URL}${API_BASE}/images/${encodeURIComponent(imagePath)}` : null;
+  };
+
+  const handleProfileClick = (username) => {
+    if (username) {
+      navigate(`/profile/${username}`); // Navigasi ke halaman profil pengguna lain
     }
   };
 
@@ -138,13 +123,24 @@ export default function UserSearch() {
       </form>
       {error && <div className="text-red-500 text-center mb-4">{error}</div>}
       {user && (
-        <div className="bg-white/90 backdrop-blur-xl p-4 rounded-xl shadow-md flex items-center space-x-4 max-w-md mx-auto">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-2xl overflow-hidden">
+        <div
+          className="bg-white/90 backdrop-blur-xl p-4 rounded-xl shadow-md flex items-center space-x-4 max-w-md mx-auto cursor-pointer"
+          onClick={() => handleProfileClick(user.username)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              handleProfileClick(user.username);
+            }
+          }}
+        >
+          <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-2xl">
             {user.image ? (
               <img
-                src={user.image}
-                alt={user.username}
-                className="w-full h-full object-cover rounded-full"
+                src={getImageUrl(user.image)}
+                alt={`${user.username} avatar`}
+                className="w-full h-full object-cover"
+                onError={(e) => (e.target.style.display = "none")}
               />
             ) : (
               user.username.charAt(0).toUpperCase()
@@ -153,16 +149,18 @@ export default function UserSearch() {
           <div className="flex-1">
             <p className="text-gray-800 font-medium text-lg">{user.username}</p>
             <p className="text-gray-500 text-sm">{user.fullName || "Tanpa nama lengkap"}</p>
+            {user.bio && <p className="text-gray-500 text-xs italic">{user.bio}</p>}
+            <p className="text-gray-400 text-xs mt-1">
+              {user.followerCount} Pengikut | {user.followingCount} Mengikuti
+            </p>
           </div>
-          {/* Tombol Follow/Unfollow di sebelah kanan */}
           <button
-            className={`px-3 py-1 rounded-lg font-medium ${
-              isFollowing
-                ? "bg-gray-200 text-gray-700 border border-gray-400"
-                : "bg-blue-600 text-white"
-            }`}
+            className={`px-3 py-1 rounded-lg font-medium ${isFollowing ? "bg-gray-200 text-gray-700 border border-gray-400" : "bg-blue-600 text-white"}`}
             style={{ minWidth: 90 }}
-            onClick={isFollowing ? handleUnfollow : handleFollow}
+            onClick={(e) => {
+              e.stopPropagation(); // Mencegah navigasi saat klik tombol
+              isFollowing ? handleUnfollow() : handleFollow();
+            }}
             disabled={followLoading}
           >
             {followLoading ? "Memproses..." : isFollowing ? "Unfollow" : "Follow"}

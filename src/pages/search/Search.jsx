@@ -3,6 +3,7 @@ import Sidebar from "../../components/sidebar/Sidebar";
 import Rightbar from "../../components/rightbar/Rightbar";
 import UserSearch from "./UserSearch"; // pastikan path sudah sesuai
 
+
 export default function Search() {
   return (
     <>

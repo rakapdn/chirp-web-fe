@@ -11,13 +11,6 @@ const ProtectedRoute = () => {
   return token ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
-// Placeholder untuk halaman profil pengguna lain
-const OtherUserProfile = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <p className="text-gray-600">Fitur profil pengguna lain belum diimplementasikan.</p>
-  </div>
-);
-
 function App() {
   return (
     <Router>
@@ -26,8 +19,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/:username" element={<OtherUserProfile />} />
+          <Route path="/profile/:username" element={<Profile />} /> {/* Gunakan untuk semua profil */}
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/search" element={<Search />} />
         </Route>

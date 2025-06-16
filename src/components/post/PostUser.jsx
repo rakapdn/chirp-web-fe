@@ -4,7 +4,6 @@ import axios from "axios";
 export default function PostUser({ post, setPosts }) {
   const [like, setLike] = useState(post.like_count || 0);
   const [isLiked, setIsLiked] = useState(post.liked_by_me || false);
-  const currentUserId = localStorage.getItem("userId");
 
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
   const API_BASE = process.env.REACT_APP_API_BASE || "/api";
