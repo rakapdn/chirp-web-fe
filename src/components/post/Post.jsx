@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { IoClose, IoSend } from "react-icons/io5";
 import axios from "axios";
 import TokenStorage from "../../utils/TokenStorage";
@@ -10,10 +11,10 @@ export default function Post({ post, setPosts }) {
   const [commentText, setCommentText] = useState("");
   const [replies, setReplies] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
   const API_BASE = process.env.REACT_APP_API_BASE || "/api";
-
   const fetchReplies = async () => {
     setLoading(true);
     const token = TokenStorage.getToken();
@@ -99,15 +100,19 @@ export default function Post({ post, setPosts }) {
   return (
     <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-gray-500/5 border border-white/20 p-6 hover:shadow-2xl hover:shadow-blue-500/10 transform hover:-translate-y-1 transition-all duration-500 group">
       <div className="flex space-x-4">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg group-hover:shadow-xl transition-all duration-300">
-          {post.author_username?.charAt(0) || "U"}
-        </div>
+        <Link to={`/profile/${post.author_username}`}>
+          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg group-hover:shadow-xl transition-all duration-300">
+            {post.author_username?.charAt(0) || "U"}
+          </div>
+        </Link>
         <div className="flex-1">
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center space-x-2">
-              <h3 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
-                {post.author_username || "Unknown"}
-              </h3>
+              <Link to={`/profile/${post.author_username}`}>
+                <h3 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
+                  {post.author_username || "Unknown"}
+                </h3>
+              </Link>
             </div>
             {/* Tanggal postingan */}
             <span className="text-gray-500 text-sm">
