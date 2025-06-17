@@ -95,38 +95,58 @@ export default function Profile() {
   return (
     <div>
       {/* Header Profil */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-blue-500/10 border border-white/20 p-6 mb-6">
-        <div className="flex flex-col sm:flex-row items-center text-center sm:text-left space-y-4 sm:space-y-0 sm:space-x-6">
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-3xl shadow-lg">
-            {profileData?.user?.username?.charAt(0)?.toUpperCase() || "U"}
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-800">
-              {profileData?.user?.username || "Unknown"}
-            </h1>
-            <p className="text-gray-600">
-              {profileData?.user?.fullName || "Nama Lengkap"}
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              {profileData?.user?.bio || "Tidak ada bio"}
-            </p>
-            <div className="flex justify-center sm:justify-start space-x-6 mt-4 text-gray-500">
-              <span>
-                <strong>{profileData?.followerCount ?? 0}</strong> Pengikut
-              </span>
-              <span>
-                <strong>{profileData?.followingCount ?? 0}</strong> Mengikuti
-              </span>
-            </div>
-          </div>
-          <button
-            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            onClick={() => alert("Fitur edit profil belum diimplementasikan")}
-          >
-            Edit Profil
-          </button>
-        </div>
+<div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-blue-500/10 border border-white/20 p-6 mb-6">
+  <div className="flex flex-col sm:flex-row items-center text-center sm:text-left space-y-4 sm:space-y-0 sm:space-x-6">
+    
+    {/* --- AWAL PERUBAHAN GAMBAR PROFIL --- */}
+    {profileData?.user?.image ? (
+      // Jika ada URL gambar, tampilkan gambar
+      <img
+        src={profileData.user.image}
+        alt={profileData.user.username}
+        className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover shadow-lg border-4 border-white/50 flex-shrink-0"
+        // Fallback jika URL gambar rusak atau tidak bisa dimuat
+        onError={(e) => {
+          e.currentTarget.onerror = null; // Mencegah loop error tak terbatas
+          // Menggantinya dengan avatar default berdasarkan nama
+          e.currentTarget.src = `https://ui-avatars.com/api/?name=${profileData.user.username}&background=random&size=128`;
+        }}
+      />
+    ) : (
+      // Jika tidak ada URL gambar, tampilkan placeholder inisial
+      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-3xl shadow-lg">
+        {profileData?.user?.username?.charAt(0)?.toUpperCase() || "U"}
       </div>
+    )}
+    {/* --- AKHIR PERUBAHAN GAMBAR PROFIL --- */}
+
+    <div className="flex-1">
+      <h1 className="text-2xl font-bold text-gray-800">
+        {profileData?.user?.username || "Unknown"}
+      </h1>
+      <p className="text-gray-600">
+        {profileData?.user?.fullName || "Nama Lengkap"}
+      </p>
+      <p className="mt-2 text-sm text-gray-500">
+        {profileData?.user?.bio || "Tidak ada bio"}
+      </p>
+      <div className="flex justify-center sm:justify-start space-x-6 mt-4 text-gray-500">
+        <span>
+          <strong>{profileData?.followerCount ?? 0}</strong> Pengikut
+        </span>
+        <span>
+          <strong>{profileData?.followingCount ?? 0}</strong> Mengikuti
+        </span>
+      </div>
+    </div>
+    <button
+      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+      onClick={() => navigate("/profile/edit")} 
+    >
+      Edit Profil
+    </button>
+  </div>
+</div>
 
       {/* Postingan User */}
       <div>

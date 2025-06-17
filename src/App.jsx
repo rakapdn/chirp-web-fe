@@ -8,6 +8,7 @@ import Login from "./pages/login/Login";
 import Register from "./pages/register/Register";
 import Notifications from "./pages/notifications/Notifications";
 import Search from "./pages/search/Search";
+import EditProfile from "./pages/profile/EditProfile";
 
 // Import Layout
 import MainLayout from "./layouts/MainLayout";
@@ -34,6 +35,7 @@ function App() {
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/:username" element={<OtherUserProfile />} />
+            <Route path="/profile/edit" element={<EditProfile />} />
           </Route>
         </Route>
       </Routes>
