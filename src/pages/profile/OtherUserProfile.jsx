@@ -5,255 +5,183 @@ import TokenStorage from "../../utils/TokenStorage";
 import Post from "../../components/post/Post";
 
 export default function OtherUserProfile() {
-  const { username } = useParams(); // Ambil username dari URL
-  const [profileData, setProfileData] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [postsError, setPostsError] = useState("");
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
-  const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
-  const API_BASE = process.env.REACT_APP_API_BASE || "/api";
+	const { username } = useParams();
+	const navigate = useNavigate();
 
-  // Fungsi untuk cek status follow
-  const checkFollowing = async (userId) => {
-    try {
-      const token = TokenStorage.getToken();
-      const res = await axios.get(
-        `${API_URL}${API_BASE}/users/${userId}/is-following`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setIsFollowing(res.data.isFollowing);
-    } catch {
-      setIsFollowing(false);
-    }
-  };
+	// State disederhanakan untuk kemudahan manajemen
+	const [profileData, setProfileData] = useState(null);
+	const [posts, setPosts] = useState([]);
+	const [isFollowing, setIsFollowing] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
+	const [errorMessage, setErrorMessage] = useState("");
+	const [followLoading, setFollowLoading] = useState(false);
 
-  // Fungsi untuk fetch data profil
-  useEffect(() => {
-    const fetchProfile = async () => {
-      setIsLoadingProfile(true);
-      setErrorMessage("");
-      const token = TokenStorage.getToken();
+	const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
+	const API_BASE = process.env.REACT_APP_API_BASE || "/api";
 
-      if (!token) {
-        navigate("/login");
-        return;
-      }
+	// Menggabungkan semua logika pengambilan data ke dalam satu useEffect
+	useEffect(() => {
+		const fetchPageData = async () => {
+			setIsLoading(true);
+			setErrorMessage("");
+			const token = TokenStorage.getToken();
 
-      try {
-        const response = await axios.get(
-          `${API_URL}${API_BASE}/users/search?username=${encodeURIComponent(
-            username
-          )}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setProfileData(response.data.user);
-        // Cek status follow setelah mendapatkan user
-        await checkFollowing(response.data.user.id);
-      } catch (error) {
-        if (error.response?.status === 401) {
-          TokenStorage.clear();
-          navigate("/login");
-        } else if (error.response?.status === 404) {
-          setErrorMessage("Pengguna tidak ditemukan.");
-        } else {
-          setErrorMessage(
-            error.response?.data?.error ||
-              "Gagal memuat profil. Coba lagi nanti."
-          );
-        }
-      } finally {
-        setIsLoadingProfile(false);
-      }
-    };
+			if (!token) {
+				navigate("/login");
+				return;
+			}
 
-    fetchProfile();
-  }, [username, navigate, API_URL, API_BASE]);
+			try {
+				// Langkah 1: Ambil data profil LENGKAP berdasarkan username.
+				// Endpoint /search Anda sudah mengembalikan semua data yang kita butuhkan
+				// (termasuk followerCount dan isFollowing), jadi tidak perlu request tambahan.
+				const profileResponse = await axios.get(
+					`${API_URL}${API_BASE}/users/search?username=${encodeURIComponent(username)}`,
+					{ headers: { Authorization: `Bearer ${token}` } }
+				);
 
-  // Fungsi untuk fetch postingan pengguna
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setIsLoadingPosts(true);
-      setPostsError("");
-      const token = TokenStorage.getToken();
+				const fullProfile = profileResponse.data;
+				const userProfile = fullProfile.user;
 
-      if (!token) {
-        return; // sudah ditangani di fetchProfile
-      }
+				if (!userProfile?.id) {
+					throw new Error("Pengguna tidak ditemukan dari respons API.");
+				}
 
-      try {
-        const response = await axios.get(
-          `${API_URL}${API_BASE}/users/${profileData?.id}/posts`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setPosts(response.data);
-      } catch (error) {
-        setPostsError(error.response?.data?.error || "Gagal memuat postingan.");
-      } finally {
-        setIsLoadingPosts(false);
-      }
-    };
+				// Set state profil dan status follow dari satu request ini
+				setProfileData(fullProfile);
+				setIsFollowing(fullProfile.isFollowing);
 
-    if (profileData?.id) {
-      fetchPosts();
-    }
-  }, [profileData?.id, API_URL, API_BASE]);
+				// Langkah 2: Setelah userId didapat, ambil postingannya
+				const postsResponse = await axios.get(
+					`${API_URL}${API_BASE}/users/${userProfile.id}/posts`,
+					{ headers: { Authorization: `Bearer ${token}` } }
+				);
+				setPosts(postsResponse.data);
 
-  // Fungsi untuk handle follow
-  const handleFollow = async () => {
-    if (!profileData) return;
-    setFollowLoading(true);
-    try {
-      const token = TokenStorage.getToken();
-      await axios.post(
-        `${API_URL}${API_BASE}/users/${profileData.id}/follow`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setIsFollowing(true);
-      // Update follower count
-      setProfileData((prev) => ({
-        ...prev,
-        followerCount: (prev.followerCount || 0) + 1,
-      }));
-    } catch (error) {
-      setErrorMessage(
-        error.response?.data?.error ||
-          "Gagal mengikuti pengguna. Coba lagi nanti."
-      );
-    } finally {
-      setFollowLoading(false);
-    }
-  };
+			} catch (error) {
+				console.error("Gagal memuat halaman profil:", error);
+				if (error.response?.status === 401) {
+					TokenStorage.clear();
+					navigate("/login");
+				} else if (error.response?.status === 404) {
+					setErrorMessage("Pengguna tidak ditemukan.");
+				} else {
+					setErrorMessage(error.response?.data?.error || "Terjadi kesalahan saat memuat halaman.");
+				}
+			} finally {
+				setIsLoading(false);
+			}
+		};
 
-  // Fungsi untuk handle unfollow
-  const handleUnfollow = async () => {
-    if (!profileData) return;
-    setFollowLoading(true);
-    try {
-      const token = TokenStorage.getToken();
-      await axios.post(
-        `${API_URL}${API_BASE}/users/${profileData.id}/unfollow`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setIsFollowing(false);
-      // Update follower count
-      setProfileData((prev) => ({
-        ...prev,
-        followerCount: Math.max((prev.followerCount || 0) - 1, 0),
-      }));
-    } catch (error) {
-      setErrorMessage(
-        error.response?.data?.error ||
-          "Gagal berhenti mengikuti pengguna. Coba lagi nanti."
-      );
-    } finally {
-      setFollowLoading(false);
-    }
-  };
+		fetchPageData();
+	}, [username, navigate, API_URL, API_BASE]);
 
-  if (isLoadingProfile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Memuat profil...</p>
-      </div>
-    );
-  }
+	// Handler follow/unfollow tunggal yang memanggil endpoint toggle
+	const handleFollowToggle = async () => {
+		// Dapatkan ID dari user yang profilnya sedang dilihat
+		const targetUserId = profileData?.user?.id;
+		if (!targetUserId || followLoading) return;
 
-  if (errorMessage) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-500">{errorMessage}</p>
-      </div>
-    );
-  }
+		setFollowLoading(true);
+		setErrorMessage("");
 
-  return (
-    <>
-      {/* Header Profil */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-blue-500/10 border border-white/20 p-6 mb-6">
-        <div className="flex items-center space-x-6">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-3xl shadow-lg overflow-hidden">
-            {profileData?.image ? (
-              <img
-                src={`${API_URL}${API_BASE}/images/${encodeURIComponent(
-                  profileData.image
-                )}`}
-                alt={profileData.username}
-                className="w-full h-full object-cover rounded-full"
-              />
-            ) : (
-              profileData?.username?.charAt(0)?.toUpperCase() || "U"
-            )}
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-800">
-              {profileData?.username || "Unknown"}
-            </h1>
-            <p className="text-gray-600">
-              {profileData?.fullName || "Nama Lengkap"}
-            </p>
-            <p className="mt-2 text-gray-500">
-              {profileData?.bio || "Tidak ada bio"}
-            </p>
-            <div className="flex space-x-4 mt-4 text-gray-500">
-              <span>
-                <strong>{profileData?.followerCount ?? 0}</strong> Pengikut
-              </span>
-              <span>
-                <strong>{profileData?.followingCount ?? 0}</strong> Mengikuti
-              </span>
-            </div>
-          </div>
-          <button
-            className={`px-4 py-2 rounded-lg font-medium ${
-              isFollowing
-                ? "bg-gray-200 text-gray-700 border border-gray-400"
-                : "bg-blue-600 text-white"
-            }`}
-            onClick={isFollowing ? handleUnfollow : handleFollow}
-            disabled={followLoading}
-          >
-            {followLoading
-              ? "Memproses..."
-              : isFollowing
-              ? "Berhenti Mengikuti"
-              : "Ikuti"}
-          </button>
-        </div>
-      </div>
-      {/* Postingan Pengguna */}
-      <div>
-        <h3 className="text-xl font-semibold mb-4">Postingan</h3>
-        {isLoadingPosts ? (
-          <p className="text-gray-600">Memuat postingan...</p>
-        ) : postsError ? (
-          <p className="text-red-500">{postsError}</p>
-        ) : posts.length === 0 ? (
-          <p className="text-gray-500">Pengguna ini belum membuat postingan.</p>
-        ) : (
-          <div className="space-y-6">
-            {posts.map((post) => (
-              <Post key={post.id} post={post} setPosts={setPosts} />
-            ))}
-          </div>
-        )}
-      </div>
-    </>
-  );
+		// Ambil ID pengguna yang sedang login dari local storage
+		const loggedInUserId = TokenStorage.getUserId();
+		if (!loggedInUserId) {
+			setErrorMessage("Gagal mendapatkan ID Anda. Silakan login ulang.");
+			setFollowLoading(false);
+			return;
+		}
+
+		try {
+			const token = TokenStorage.getToken();
+			// Panggil endpoint BARU yang sudah kita buat
+			const response = await axios.post(
+				`${API_URL}${API_BASE}/users/${targetUserId}/toggle-follow`,
+				{ followerId: loggedInUserId }, // Kirim ID pengguna login di body
+				{ headers: { Authorization: `Bearer ${token}` } }
+			);
+
+			// Update state berdasarkan respons dari API (bukan tebakan)
+			const { isFollowing: newIsFollowing, newFollowerCount } = response.data;
+
+			setIsFollowing(newIsFollowing);
+			setProfileData(prev => ({
+				...prev,
+				followerCount: newFollowerCount,
+			}));
+
+		} catch (error) {
+			console.error("Gagal melakukan aksi follow/unfollow:", error);
+			setErrorMessage(error.response?.data?.error || "Aksi gagal, coba lagi.");
+		} finally {
+			setFollowLoading(false);
+		}
+	};
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<p className="text-gray-600">Memuat profil untuk @{username}...</p>
+			</div>
+		);
+	}
+
+	if (errorMessage && !profileData) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<p className="text-red-500">{errorMessage}</p>
+			</div>
+		);
+	}
+
+	return (
+		<>
+			{/* Header Profil */}
+			<div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-blue-500/10 border border-white/20 p-6 mb-6">
+				{errorMessage && profileData && (
+					<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+						<span className="block sm:inline">{errorMessage}</span>
+					</div>
+				)}
+				<div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left space-y-4 sm:space-y-0 sm:space-x-6">
+					<div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-3xl shadow-lg overflow-hidden">
+						{profileData?.user?.image ? (
+							<img src={`${API_URL}${API_BASE}/images/${encodeURIComponent(profileData.user.image)}`} alt={profileData.user.username} className="w-full h-full object-cover" />
+						) : (
+							profileData?.user?.username?.charAt(0)?.toUpperCase() || "U"
+						)}
+					</div>
+					<div className="flex-1">
+						<h1 className="text-2xl font-bold text-gray-800">{profileData?.user?.username || "Unknown"}</h1>
+						<p className="text-gray-600">{profileData?.user?.fullName || "Nama Lengkap"}</p>
+						<p className="mt-2 text-sm text-gray-500">{profileData?.user?.bio || "Tidak ada bio"}</p>
+						<div className="flex justify-center sm:justify-start space-x-6 mt-4 text-gray-500">
+							<span><strong>{profileData?.followerCount ?? 0}</strong> Pengikut</span>
+							<span><strong>{profileData?.followingCount ?? 0}</strong> Mengikuti</span>
+						</div>
+					</div>
+					<button
+						className={`w-full sm:w-auto px-4 py-2 rounded-lg font-semibold transition-colors duration-200 ${isFollowing ? "bg-gray-200 text-gray-800 border border-gray-300 hover:bg-gray-300" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+						onClick={handleFollowToggle}
+						disabled={followLoading}
+					>
+						{followLoading ? "Memproses..." : isFollowing ? "Diikuti" : "Ikuti"}
+					</button>
+				</div>
+			</div>
+
+			{/* Postingan Pengguna */}
+			<div>
+				<h3 className="text-xl font-semibold mb-4">Postingan</h3>
+				{posts.length > 0 ? (
+					<div className="space-y-6">
+						{posts.map((post) => (<Post key={post.id} post={post} setPosts={setPosts} />))}
+					</div>
+				) : (
+					<p className="text-gray-500">Pengguna ini belum membuat postingan.</p>
+				)}
+			</div>
+		</>
+	);
 }
