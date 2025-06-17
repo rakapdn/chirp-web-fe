@@ -90,7 +90,7 @@ export default function PostCurrentUser({ post, setPosts }) {
       alert(error.response?.data?.error || "Gagal menambahkan komentar!");
     }
   };
-    const deleteHandler = async () => {
+  const deleteHandler = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
       alert("Anda harus login untuk menghapus postingan!");
@@ -122,14 +122,13 @@ export default function PostCurrentUser({ post, setPosts }) {
           {post.author_username?.charAt(0) || "U"}
         </div>
         <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-3">
-            <h3 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
-              {post.author_username || "Unknown"}
-            </h3>
-            <span className="text-gray-500 font-medium">
-              @{post.author_username?.toLowerCase() || "unknown"}
-            </span>
-            <span className="text-gray-400">·</span>
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center space-x-2">
+              <h3 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
+                {post.author_username || "Unknown"}
+              </h3>
+            </div>
+            {/* Tanggal postingan */}
             <span className="text-gray-500 text-sm">
               {new Date(post.createdAt).toLocaleString("id-ID", {
                 day: "numeric",
@@ -180,18 +179,18 @@ export default function PostCurrentUser({ post, setPosts }) {
 
           {showCommentForm && (
             <div className="mt-4">
-             <form onSubmit={handleComment} className="flex gap-2">
+              <form onSubmit={handleComment} className="flex gap-2">
                 <textarea
                   value={commentText}
                   onChange={(e) => {
                     setCommentText(e.target.value);
                     // Auto adjust height
-                    e.target.style.height = 'auto';
-                    e.target.style.height = e.target.scrollHeight + 'px';
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
                   }}
                   className="flex-1 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[44px] max-h-[200px]"
                   placeholder="Tulis komentar Anda..."
-                  style={{ height: '44px' }}
+                  style={{ height: "44px" }}
                   required
                 />
                 <div className="flex flex-col gap-2">

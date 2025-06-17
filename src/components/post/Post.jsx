@@ -103,14 +103,13 @@ export default function Post({ post, setPosts }) {
           {post.author_username?.charAt(0) || "U"}
         </div>
         <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-3">
-            <h3 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
-              {post.author_username || "Unknown"}
-            </h3>
-            <span className="text-gray-500 font-medium">
-              @{post.author_username?.toLowerCase() || "unknown"}
-            </span>
-            <span className="text-gray-400">·</span>
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center space-x-2">
+              <h3 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
+                {post.author_username || "Unknown"}
+              </h3>
+            </div>
+            {/* Tanggal postingan */}
             <span className="text-gray-500 text-sm">
               {new Date(post.createdAt).toLocaleString("id-ID", {
                 day: "numeric",
@@ -155,18 +154,18 @@ export default function Post({ post, setPosts }) {
 
           {showCommentForm && (
             <div className="mt-4">
-             <form onSubmit={handleComment} className="flex gap-2">
+              <form onSubmit={handleComment} className="flex gap-2">
                 <textarea
                   value={commentText}
                   onChange={(e) => {
                     setCommentText(e.target.value);
                     // Auto adjust height
-                    e.target.style.height = 'auto';
-                    e.target.style.height = e.target.scrollHeight + 'px';
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
                   }}
                   className="flex-1 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[44px] max-h-[200px]"
                   placeholder="Tulis komentar Anda..."
-                  style={{ height: '44px' }}
+                  style={{ height: "44px" }}
                   required
                 />
                 <div className="flex flex-col gap-2">
@@ -197,17 +196,31 @@ export default function Post({ post, setPosts }) {
                   <div className="mt-4 space-y-4">
                     {replies.map((reply) => (
                       <div key={reply.id} className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                        {/* Container utama untuk avatar dan info, kita beri sedikit lebih banyak ruang */}
+                        <div className="flex items-start space-x-3">
+                          {/* Avatar */}
+                          <div className="w-8 h-8 rounded-full bg-blue-500 flex-shrink-0 flex items-center justify-center text-white">
                             {reply.author_username?.[0]}
                           </div>
-                          <div>
-                            <p className="font-semibold">
-                              {reply.author_username}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {new Date(reply.createdAt).toLocaleString()}
-                            </p>
+                          <div className="flex-1">
+                            <div className="flex justify-between items-center">
+                              <p className="font-semibold text-gray-800">
+                                {reply.author_username}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {" "}
+                                {new Date(reply.createdAt).toLocaleString(
+                                  "id-ID",
+                                  {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </p>
+                            </div>
                           </div>
                         </div>
                         <p className="mt-2 ml-10">{reply.content}</p>
